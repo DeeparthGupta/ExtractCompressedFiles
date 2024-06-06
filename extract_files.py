@@ -3,6 +3,7 @@ import shutil
 import zipfile
 
 import py7zr
+import patoolib
 
 
 def extract_zip(input_file, output_dir):
@@ -37,13 +38,20 @@ def extract_7z(input_file, output_dir):
     """
     with py7zr.SevenZipFile(input_file, mode="r") as archive:
         for file_info in archive.getnames():
-            with archive.read(file_info) as source, open(
+            with archive.read(file_info) as source, open( # type: ignore
                 os.path.join(output_dir, file_info), "wb"
             ) as target:
                 shutil.copyfileobj(source, target)
 
+
 def extract_rar(input_file, output_dir):
-    pass
+    
+    try:
+        patoolib.extract_archive(input_file, outdir=output_dir)
+        print(f"RAR file '{input_file}' extracted to '{output_dir}")
+
+    except Exception as e:
+        print(f"Error extracting RAR file: '{e}'")
 
 
 def extract_compressed_files(compressed_file, output_dir):
@@ -51,6 +59,8 @@ def extract_compressed_files(compressed_file, output_dir):
         extract_zip(compressed_file, output_dir)
     elif compressed_file.lower().endswith(".7z"):
         extract_7z(compressed_file, output_dir)
+    elif compressed_file.lower().endswith(".rar"):
+        extract_rar(compressed_file, output_dir)
     else:
         print(f"Unsupported file format: {compressed_file}")
 
