@@ -1,3 +1,5 @@
 3.12.3
 .vscode
 .direnv
+.envrc
+.pylintrc
