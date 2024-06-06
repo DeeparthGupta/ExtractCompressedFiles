@@ -6,6 +6,16 @@ import py7zr
 
 
 def extract_zip(input_file, output_dir):
+    """
+    Extracts files from a ZIP archive.
+
+    Args:
+        input_file (str): Path to the ZIP file.
+        output_dir (str): Directory where extracted files will be saved.
+
+    Example:
+        extract_zip('myarchive.zip', '/path/to/output/directory')
+    """
     with zipfile.ZipFile(input_file, "r") as zip_ref:
         for file_info in zip_ref.infolist():
             with zip_ref.open(file_info) as source, open(
@@ -15,6 +25,16 @@ def extract_zip(input_file, output_dir):
 
 
 def extract_7z(input_file, output_dir):
+    """
+    Extracts files from a 7-Zip (7z) archive.
+
+    Args:
+        input_file (str): Path to the 7z file.
+        output_dir (str): Directory where extracted files will be saved.
+
+    Example:
+        extract_7z('myarchive.7z', '/path/to/output/directory')
+    """
     with py7zr.SevenZipFile(input_file, mode="r") as archive:
         for file_info in archive.getnames():
             with archive.read(file_info) as source, open(
@@ -23,7 +43,7 @@ def extract_7z(input_file, output_dir):
                 shutil.copyfileobj(source, target)
 
 def extract_rar(input_file, output_dir):
-    
+    pass
 
 
 def extract_compressed_files(compressed_file, output_dir):
