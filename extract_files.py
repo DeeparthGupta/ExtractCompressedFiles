@@ -1,3 +1,4 @@
+import argparse
 import os
 import shutil
 import zipfile
@@ -73,6 +74,10 @@ def extract_all_files_in_directory(directory, output_dir):
 
 
 if __name__ == "__main__":
+
+    # Take in command line parameters
+    argument_parser = argparse.ArgumentParser(description="Extract some archives")
+
     INPUT_DIRECTORY = "path/to/compressed/files"
     OUTPUT_DIRECTORY = "path/to/extracted/files"
 
