@@ -46,13 +46,13 @@ def extract_7z(input_file, output_dir):
 
 
 def extract_rar(input_file, output_dir):
-    
+
     try:
         patoolib.extract_archive(input_file, outdir=output_dir)
         print(f"RAR file '{input_file}' extracted to '{output_dir}")
 
-    except Exception as e:
-        print(f"Error extracting RAR file: '{e}'")
+    except Exception     as error:
+        print(f"Error extracting RAR file: '{error}'")
 
 
 def extract_compressed_files(compressed_file, output_dir):
@@ -77,9 +77,13 @@ if __name__ == "__main__":
 
     # Take in command line parameters
     argument_parser = argparse.ArgumentParser(description="Extract some archives")
+    argument_parser.add_argument('-s','--source',dest='source_file', nargs=1, required=True)
+    argument_parser.add_argument('-d','--destination', dest='dest_file', nargs=1, required=True)
 
-    INPUT_DIRECTORY = "path/to/compressed/files"
-    OUTPUT_DIRECTORY = "path/to/extracted/files"
+    arguments = argument_parser.parse_args
+
+    INPUT_DIRECTORY = arguments.source_file
+    OUTPUT_DIRECTORY = arguments.dest_file
 
     # Extract all compressed files in the input directory
     extract_all_files_in_directory(INPUT_DIRECTORY, OUTPUT_DIRECTORY)
