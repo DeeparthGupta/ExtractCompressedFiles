@@ -39,17 +39,27 @@ def extract_7z(input_file, output_dir):
         output_dir (str): Directory where extracted files will be saved.
 
     Example:
-        extract_7z('myarchive.7z', '/path/to/output/directory')s
+        extract_7z('myarchive.7z', '/path/to/output/directory')
     """
     with py7zr.SevenZipFile(input_file, mode="r") as archive:
         archive.extractall(output_dir)
 
 
 def extract_rar(input_file, output_dir):
+    """
+    Extracts files from rar archives.
+
+    Args:
+        input_file (str): Path to the rar file
+        output_dir (str): Directory where extracted files will be saved.
+
+    Example:
+        extract_rar('myarchive.7z', '/path/to/output/directory')
+    """
 
     try:
         patoolib.extract_archive(input_file, outdir=output_dir)
-        print(f"RAR file '{input_file}' extracted to '{output_dir}")
+        #print(f"RAR file '{input_file}' extracted to '{output_dir}")
 
     except Exception as error:
         print(f"Error extracting RAR file: '{error}'")
