@@ -18,9 +18,9 @@ def extract_zip(input_file, output_dir):
     Example:
         extract_zip('myarchive.zip', '/path/to/output/directory')
     """
-    with zipfile.ZipFile(input_file, "r") as zip_ref:
-        for file_info in zip_ref.infolist():
-            with zip_ref.open(file_info) as source, open(
+    with zipfile.ZipFile(input_file, "r") as file_ref:
+        for file_info in file_ref.infolist():
+            with file_ref.open(file_info) as source, open(
                 os.path.join(output_dir, file_info.filename), "wb"
             ) as target:
                 shutil.copyfileobj(source, target)
@@ -37,9 +37,9 @@ def extract_7z(input_file, output_dir):
     Example:
         extract_7z('myarchive.7z', '/path/to/output/directory')
     """
-    with py7zr.SevenZipFile(input_file, mode="r") as archive:
-        for file_info in archive.getnames():
-            with archive.read(file_info) as source, open( # type: ignore
+    with py7zr.SevenZipFile(input_file, mode="r") as file_ref:
+        for file_info in file_ref.getnames():
+            with file_ref.read(file_info) as source, open(  # type: ignore
                 os.path.join(output_dir, file_info), "wb"
             ) as target:
                 shutil.copyfileobj(source, target)
@@ -51,11 +51,11 @@ def extract_rar(input_file, output_dir):
         patoolib.extract_archive(input_file, outdir=output_dir)
         print(f"RAR file '{input_file}' extracted to '{output_dir}")
 
-    except Exception     as error:
+    except Exception as error:
         print(f"Error extracting RAR file: '{error}'")
 
 
-def extract_compressed_files(compressed_file, output_dir):
+def extract_compressed_file(compressed_file, output_dir):
     if compressed_file.lower().endswith(".zip"):
         extract_zip(compressed_file, output_dir)
     elif compressed_file.lower().endswith(".7z"):
@@ -66,24 +66,35 @@ def extract_compressed_files(compressed_file, output_dir):
         print(f"Unsupported file format: {compressed_file}")
 
 
-def extract_all_files_in_directory(directory, output_dir):
-    for root, _, files in os.walk(directory):
-        for file in files:
-            full_path = os.path.join(root, file)
-            extract_compressed_files(full_path, output_dir)
+def extract_all_files_in_directory(path, output_dir):
+    if os.path.isdir(path):
+        for root, _, files in os.walk(path):
+            for file in files:
+                full_path = os.path.join(root, file)
+                extract_compressed_file(full_path, output_dir)
+
+    elif os.path.isfile(path):
+        extract_compressed_file(path,output_dir)
+
+    else:
+        print(f"{path} is not a valid path")
 
 
 if __name__ == "__main__":
 
     # Take in command line parameters
     argument_parser = argparse.ArgumentParser(description="Extract some archives")
-    argument_parser.add_argument('-s','--source',dest='source_file', nargs=1, required=True)
-    argument_parser.add_argument('-d','--destination', dest='dest_file', nargs=1, required=True)
+    argument_parser.add_argument(
+        "-s", "--source", dest="source", nargs=1, required=True
+    )
+    argument_parser.add_argument(
+        "-d", "--destination", dest="dest_dir", nargs=1, required=True
+    )
 
-    arguments = argument_parser.parse_args
+    arguments = argument_parser.parse_args()
 
-    INPUT_DIRECTORY = arguments.source_file
-    OUTPUT_DIRECTORY = arguments.dest_file
+    INPUT_DIRECTORY = arguments.source
+    OUTPUT_DIRECTORY = arguments.dest_dir
 
     # Extract all compressed files in the input directory
     extract_all_files_in_directory(INPUT_DIRECTORY, OUTPUT_DIRECTORY)
