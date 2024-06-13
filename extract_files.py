@@ -20,10 +20,14 @@ def extract_zip(input_file, output_dir):
     """
     with zipfile.ZipFile(input_file, "r") as file_ref:
         for file_info in file_ref.infolist():
-            with file_ref.open(file_info) as source, open(
-                os.path.join(output_dir, file_info.filename), "wb"
-            ) as target:
-                shutil.copyfileobj(source, target)
+            if not file_info.is_dir():
+                with file_ref.open(file_info) as source, open(
+                    os.path.join(output_dir, file_info.filename), "w+b"
+                ) as target:
+                    shutil.copyfileobj(source, target)
+            else:
+                subdir_path = os.path.join(output_dir, file_info.filename)
+                os.makedirs(subdir_path, exist_ok=True)
 
 
 def extract_7z(input_file, output_dir):
@@ -39,8 +43,8 @@ def extract_7z(input_file, output_dir):
     """
     with py7zr.SevenZipFile(input_file, mode="r") as file_ref:
         for file_info in file_ref.getnames():
-            with file_ref.read(file_info) as source, open(  # type: ignore
-                os.path.join(output_dir, file_info), "wb"
+            with file_ref.read(file_info) as source, open(  
+                os.path.join(output_dir, file_info), "w+b"
             ) as target:
                 shutil.copyfileobj(source, target)
 
@@ -93,8 +97,8 @@ if __name__ == "__main__":
 
     arguments = argument_parser.parse_args()
 
-    INPUT_DIRECTORY = arguments.source
-    OUTPUT_DIRECTORY = arguments.dest_dir
+    INPUT_DIRECTORY = arguments.source[0]
+    OUTPUT_DIRECTORY = arguments.dest_dir[0]
 
     # Extract all compressed files in the input directory
     extract_all_files_in_directory(INPUT_DIRECTORY, OUTPUT_DIRECTORY)
