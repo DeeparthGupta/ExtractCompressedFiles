@@ -1,4 +1,5 @@
 import argparse
+from ast import List
 import os
 import shutil
 import zipfile
@@ -18,16 +19,22 @@ def extract_zip(input_file, output_dir):
     Example:
         extract_zip('myarchive.zip', '/path/to/output/directory')
     """
-    with zipfile.ZipFile(input_file, "r") as file_ref:
-        for file_info in file_ref.infolist():
-            if not file_info.is_dir():
-                with file_ref.open(file_info) as source, open(
-                    os.path.join(output_dir, file_info.filename), "w+b"
-                ) as target:
-                    shutil.copyfileobj(source, target)
-            else:
-                subdir_path = os.path.join(output_dir, file_info.filename)
-                os.makedirs(subdir_path, exist_ok=True)
+    try:
+        with zipfile.ZipFile(input_file, "r") as file_ref:
+            for file_info in file_ref.infolist():
+                if not file_info.is_dir():
+                    with file_ref.open(file_info) as source, open(
+                        os.path.join(output_dir, file_info.filename), "w+b"
+                    ) as target:
+                        shutil.copyfileobj(source, target)
+                else:
+                    subdir_path = os.path.join(output_dir, file_info.filename)
+                    os.makedirs(subdir_path, exist_ok=True)
+        print(f'Successfully extracted file {input_file}')
+    except Exception as exception:
+        print(f'Unable to extract {input_file} due to Error:{exception}')
+        unsuccessful_list.append(input_file) # pylint: disable = E0601
+
 
 
 def extract_7z(input_file, output_dir):
@@ -41,8 +48,14 @@ def extract_7z(input_file, output_dir):
     Example:
         extract_7z('myarchive.7z', '/path/to/output/directory')
     """
-    with py7zr.SevenZipFile(input_file, mode="r") as archive:
-        archive.extractall(output_dir)
+    try:
+        with py7zr.SevenZipFile(input_file, mode="r") as archive:
+            archive.extractall(output_dir)
+        print(f'Successfully extracted file {input_file}')
+
+    except Exception as exception:
+        print(f'Unable to extract {input_file} due to Error:{exception}')
+        unsuccessful_list.append(input_file)
 
 
 def extract_rar(input_file, output_dir):
@@ -63,6 +76,7 @@ def extract_rar(input_file, output_dir):
 
     except Exception as error:
         print(f"Error extracting RAR file: '{error}'")
+        unsuccessful_list.append(input_file)
 
 
 def extract_compressed_file(compressed_file, output_dir):
@@ -74,6 +88,7 @@ def extract_compressed_file(compressed_file, output_dir):
         extract_rar(compressed_file, output_dir)
     else:
         print(f"Unsupported file format: {compressed_file}")
+        unsuccessful_list.append(compressed_file)
 
 
 def extract_all_files_in_directory(path, output_dir):
@@ -106,7 +121,14 @@ if __name__ == "__main__":
     INPUT_DIRECTORY = arguments.source[0]
     OUTPUT_DIRECTORY = arguments.dest_dir[0]
 
+    unsuccessful_list = []
+
     # Extract all compressed files in the input directory
     extract_all_files_in_directory(INPUT_DIRECTORY, OUTPUT_DIRECTORY)
+
+    if unsuccessful_list:
+        print('The following files could not be extracted:')
+        for item in unsuccessful_list:
+            print(item)
 
     print(f"Extraction completed. Files saved in {OUTPUT_DIRECTORY}")
