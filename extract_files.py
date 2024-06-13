@@ -39,14 +39,10 @@ def extract_7z(input_file, output_dir):
         output_dir (str): Directory where extracted files will be saved.
 
     Example:
-        extract_7z('myarchive.7z', '/path/to/output/directory')
+        extract_7z('myarchive.7z', '/path/to/output/directory')s
     """
-    with py7zr.SevenZipFile(input_file, mode="r") as file_ref:
-        for file_info in file_ref.getnames():
-            with file_ref.read(file_info) as source, open(  
-                os.path.join(output_dir, file_info), "w+b"
-            ) as target:
-                shutil.copyfileobj(source, target)
+    with py7zr.SevenZipFile(input_file, mode="r") as archive:
+        archive.extractall(output_dir)
 
 
 def extract_rar(input_file, output_dir):
