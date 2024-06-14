@@ -1,5 +1,5 @@
-Created to help me extract starsector mods but I'm sure it could be used anywhere. Its WIP not free of showstopping bugs.
+A script to extract a specific or all compressed files in a directory using patoolib. 
+The script's abilities depend on the tools available in the path and will fail if the tool isn't available.
+The script takes 2 positional arguments `source` and `destination`. `destination` must be a directory.
 
-Use the `-s` or the `--source` argument to specify a source path which can point to a directory containing one or more compressed files or directly to a compressed file.
-
-Use the `-d` or the `--destination` argument to specify a destination directory for the extraction output.
+`requirements.txt` contains py7zr
