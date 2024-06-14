@@ -38,16 +38,21 @@ def extract_zip(input_file, output_dir, fail_list):
     try:
         with zipfile.ZipFile(input_file, "r") as file_ref:
             for file_info in file_ref.infolist():
+                # Create a path object for the target path
+                target_path = (
+                    Path(output_dir) / file_info.filename
+                )  # / is a concatenation function
+                # Create a directory structure for the current item
+                target_path.parent.mkdir(parents=True, exist_ok=True)
+                # If the current item is not a directory, extract it
                 if not file_info.is_dir():
                     with file_ref.open(file_info) as source, open(
-                        os.path.join(output_dir, file_info.filename), "w+b"
+                        target_path, "wb"
                     ) as target:
                         shutil.copyfileobj(source, target)
-                else:
-                    subdir_path = os.path.join(output_dir, file_info.filename)
-                    os.makedirs(subdir_path, exist_ok=True)
+
         print(f"Successfully extracted file {input_file}")
-    except Exception as exception: # pylint: disable = W0718
+    except Exception as exception:  # pylint: disable = W0718
         handle_extraction_error(input_file, exception, fail_list)
 
 
@@ -66,7 +71,7 @@ def extract_7z(input_file, output_dir, fail_list):
             archive.extractall(output_dir)
         print(f"Successfully extracted file {input_file}")
 
-    except Exception as exception: # pylint: disable = W0718
+    except Exception as exception:  # pylint: disable = W0718
         handle_extraction_error(input_file, exception, fail_list)
 
 
@@ -83,7 +88,7 @@ def extract_rar(input_file, output_dir, fail_list):
     try:
         patoolib.extract_archive(input_file, outdir=output_dir)
 
-    except Exception as exception: # pylint: disable = W0718
+    except Exception as exception:  # pylint: disable = W0718
         handle_extraction_error(input_file, exception, fail_list)
 
 
@@ -136,11 +141,9 @@ def extract_all_files_in_directory(path, output_dir, fail_list):
 
 def main():
     parser = argparse.ArgumentParser(description="Extract compressed archives.")
+    parser.add_argument("source", help="Source file or directory containing archives.")
     parser.add_argument(
-        "source", help="Source file or directory containing archives.", required=True
-    )
-    parser.add_argument(
-        "destination", help="Destination directory for extracted files.", required=True
+        "destination", help="Destination directory for extracted files."
     )
     args = parser.parse_args()
 
