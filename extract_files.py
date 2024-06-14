@@ -1,10 +1,6 @@
 import argparse
 import os
-import shutil
-import zipfile
-from pathlib import Path
 
-import py7zr
 import patoolib
 
 
@@ -25,73 +21,6 @@ def handle_extraction_error(file, exception, fail_list):
     fail_list.append(file)
 
 
-def extract_zip(input_file, output_dir, fail_list):
-    """
-    Extracts ZIP files and logs failures.
-
-    Args:
-        input_file (str): Path to the ZIP file.
-        output_dir (str): Target directory for extraction.
-        fail_list (list): Accumulates paths of failed extractions.
-    """
-
-    try:
-        with zipfile.ZipFile(input_file, "r") as file_ref:
-            for file_info in file_ref.infolist():
-                # Create a path object for the target path
-                target_path = (
-                    Path(output_dir) / file_info.filename
-                )  # / is a concatenation function
-                # Create a directory structure for the current item
-                target_path.parent.mkdir(parents=True, exist_ok=True)
-                # If the current item is not a directory, extract it
-                if not file_info.is_dir():
-                    with file_ref.open(file_info) as source, open(
-                        target_path, "wb"
-                    ) as target:
-                        shutil.copyfileobj(source, target)
-
-        print(f"Successfully extracted file {input_file}")
-    except Exception as exception:  # pylint: disable = W0718
-        handle_extraction_error(input_file, exception, fail_list)
-
-
-def extract_7z(input_file, output_dir, fail_list):
-    """
-    Extracts 7z files and logs failures.
-
-    Args:
-        input_file (str): Path to the 7z file.
-        output_dir (str): Target directory for extraction.
-        fail_list (list): Accumulates paths of failed extractions.
-    """
-
-    try:
-        with py7zr.SevenZipFile(input_file, mode="r") as archive:
-            archive.extractall(output_dir)
-        print(f"Successfully extracted file {input_file}")
-
-    except Exception as exception:  # pylint: disable = W0718
-        handle_extraction_error(input_file, exception, fail_list)
-
-
-def extract_rar(input_file, output_dir, fail_list):
-    """
-    Extracts RAR files and logs failures.
-
-    Args:
-        input_file (str): Path to the RAR file.
-        output_dir (str): Target directory for extraction.
-        fail_list (list): Accumulates paths of failed extractions.
-    """
-
-    try:
-        patoolib.extract_archive(input_file, outdir=output_dir)
-
-    except Exception as exception:  # pylint: disable = W0718
-        handle_extraction_error(input_file, exception, fail_list)
-
-
 def extract_compressed_file(compressed_file, output_dir, fail_list):
     """
     Extracts a compressed file and logs any failures.
@@ -104,21 +33,16 @@ def extract_compressed_file(compressed_file, output_dir, fail_list):
         fail_list (list): Accumulates paths of failed extractions.
     """
 
-    extractors = {".zip": extract_zip, ".7z": extract_7z, ".rar": extract_rar}
-
-    file_extension = Path(compressed_file).suffix
-    extractor = extractors.get(file_extension)
-
-    if extractor:
-        extractor(compressed_file, output_dir, fail_list)
-    else:
-        print(f"Unsupported file format:{file_extension}")
-        fail_list.append(compressed_file)
+    try:
+        patoolib.extract_archive(compressed_file, outdir=output_dir)
+        print(f"Successfully extracted {compressed_file}")
+    except Exception as exception:  # pylint: disable = W0718
+        handle_extraction_error(compressed_file, exception, fail_list)
 
 
-def extract_all_files_in_directory(path, output_dir, fail_list):
+def handle_extractions(path, output_dir, fail_list):
     """
-    Extracts all supported files in a directory and logs failures.
+    Extracts all supported files in a directory and logs failures. Alternatively, extract a single archive.
 
     Args:
         path (str): Source directory or file path.
@@ -140,6 +64,7 @@ def extract_all_files_in_directory(path, output_dir, fail_list):
 
 
 def main():
+    # CLI arguments
     parser = argparse.ArgumentParser(description="Extract compressed archives.")
     parser.add_argument("source", help="Source file or directory containing archives.")
     parser.add_argument(
@@ -147,8 +72,9 @@ def main():
     )
     args = parser.parse_args()
 
+    # List of all failed extractions
     fail_list = []
-    extract_all_files_in_directory(args.source, args.destination, fail_list)
+    handle_extractions(args.source, args.destination, fail_list)
 
     if fail_list:
         print("The following files could not be extracted:")
