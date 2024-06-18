@@ -4,3 +4,4 @@
 .envrc
 .pylintrc
 /test
+/venv
